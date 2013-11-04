@@ -52,5 +52,12 @@ val pairs = for {x <- integers; y<- integers} yield (x, y)
 def interval(lo: Int, hi: Int) : Generator[Int] = for { X <- integers } yield lo + x % (hi - lo)
 ```
 <h1>Monads</h1>
+A monad is a parametric type M[T] with two operations: <code>flatMap</code> and <code>unit</code>. 
+```scala
+trait M[+T] {
+  def flatMap[U](f: T => M[U]) : M[U]
+  def unit[T](x: T) : M[T]
+}
+```
 <h1>Futures</h1>
 <h1>Observables</h1>
