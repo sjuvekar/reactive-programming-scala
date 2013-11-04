@@ -49,6 +49,7 @@ With these definition, and a basic definition of <code>integer</code> generator,
 ```scala
 val booleans = for {x <- integers} yield x > 0
 val pairs = for {x <- integers; y<- integers} yield (x, y)
+def interval(lo: Int, hi: Int) : Generator[Int] = for { X <- integers } yield lo + x % (hi - lo)
 ```
 <h1>Monads</h1>
 <h1>Futures</h1>
