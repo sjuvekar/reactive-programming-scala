@@ -61,7 +61,9 @@ trait M[T] {
 ```
 These operations must satisfy three important properties:
 <ol>
-  <li><b>Associativity:</b> <code>(x flatMap f) flatMap g == x flatMap (y => f(y) flatMap g) </code></li>
+  <li><b>Associativity:</b> <code>(x flatMap f) flatMap g == x flatMap (y => f(y) flatMap g)</code></li>
+  <li><b>Left unit:</b> <code>unit(x) flatMap f == f(x)</code></li>
+  <li><b>Right unit:</b> <code>m flatMap unit == m</code></li>
 </ol>
 <h1>Futures</h1>
 <h1>Observables</h1>
