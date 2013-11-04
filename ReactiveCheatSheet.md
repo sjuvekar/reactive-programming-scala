@@ -1,6 +1,6 @@
 <h1>Partial Functions</h1>
 A subtype of trait <code>Function1</code> that is well defined on a subset of its domain.
-```
+```scala
   trait PartialFunction[-A, +R] extends Function1[-A, +R] {
     def apply(x: A): R
     def isDefinedAt(x: A): Boolean
