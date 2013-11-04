@@ -40,11 +40,9 @@ trait Generator[T+] {
 ```
 Let's define a basic integer random generator as 
 ```scala
-def integers : Generator[Int] {
-  def generate : Int {
-    val rand = new java.util.Random
-    def generate = rand.nextInt()
-  }
+val integers = new Generator[Int] {
+  val rand = new java.util.Random
+  def generate = rand.nextInt()
 }
 ````
 With these definition, and a basic definition of <code>integer</code> generator, we can map it to other domains like 
