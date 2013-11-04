@@ -11,3 +11,5 @@ Every concrete implementation of PartialFunction has the usual <code>apply</code
 <b>Important:</b> An implementation of partialFunction can return <code> true </code> for <code>isDefinedAt </code> but still end up throwing Runtime Exception (like MatchException in pattern-matching implementation).
 <h1>Generators</h1>
 <h1>Monads</h1>
+<h1>Futures</h1>
+<h1>Observables</h1>
