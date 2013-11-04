@@ -23,6 +23,7 @@ x <- expr withFilter {
     case pat => x
   }
 ```
+The remaining parts are translated to <code> map, flatMap, withFilter</code> according to standard for-comprehension rules.
 <h1>Generators</h1>
 <h1>Monads</h1>
 <h1>Futures</h1>
