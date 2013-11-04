@@ -66,6 +66,17 @@ These operations must satisfy three important properties:
   <li><b>Right unit:</b> <code>m flatMap unit == m</code></li>
 </ol>
 Many standard Scala Objects like <code>List, Set, Option, Gen</code> are monads with identical implementation of <code>flatMap</code> and specialized implementation of <code>unit</code>. An example of non-monad is a special <code>Try</code> object that fails with a non-fatal exception because it fails to satisfy Left unit (See lectures). 
-<h2>Monads and For-Expression</h2>
+<h3>Monads and For-Expression</h3>
+Monads help simplify for-expressions. 
+
+<b>Associativily</b> helps us "inline" nested for-expressions and write something like 
+```scala  
+  for { x <- e1; y <- e2(x) ... }
+```
+<b>Right unit</b> helps us eliminate for-expression using the identity 
+```scala
+  for{x <- m} yield x == m
+```
+
 <h1>Futures</h1>
 <h1>Observables</h1>
