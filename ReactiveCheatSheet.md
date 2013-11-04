@@ -8,13 +8,13 @@ A subtype of trait <code>Function1</code> that is well defined on a subset of it
 ```
 Every concrete implementation of PartialFunction has the usual <code>apply</code> method along with a boolean method <code>isDefinedAt</code>.
 
-<b>Important:</b> An implementation of partialFunction can return <code> true </code> for <code>isDefinedAt </code> but still end up throwing Runtime Exception (like MatchException in pattern-matching implementation).
+<b>Important:</b> An implementation of partialFunction can return <code>true</code> for <code>isDefinedAt </code> but still end up throwing Runtime Exception (like MatchException in pattern-matching implementation).
 <h1>For-Comprehension and Pattern Matching</h1>
 A general For-Comprehension is described in Scala Cheat Sheet here: https://github.com/lrytz/progfun-wiki/blob/gh-pages/CheatSheet.md One can also use Patterns inside for-expression. The simplest form of for-expression pattern looks like
 ```scala
 for { pat <- expr} yield e
 ```
-where <code>pat</code> is a pattern containing a single variable <code>x</code>. We translate the <code> pat <- expr </code> of the expression to
+where <code>pat</code> is a pattern containing a single variable <code>x</code>. We translate the <code>pat <- expr</code> part of the expression to
 ```scala
 x <- expr withFilter {
     case pat => true
