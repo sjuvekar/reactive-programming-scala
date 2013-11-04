@@ -14,7 +14,15 @@ A general For-Comprehension is described in Scala Cheat Sheet here: https://gith
 ```scala
 for { pat <- expr} yield e
 ```
-where <code>pat</code> is a pattern containing a single variable <code>x</code>.
+where <code>pat</code> is a pattern containing a single variable <code>x</code>. We translate the <code> pat <- expr </code> of the expression to
+```scala
+x <- expr withFilter {
+    case pat => true
+    case _ => false
+  } map {
+    case pat => x
+  }
+```
 <h1>Generators</h1>
 <h1>Monads</h1>
 <h1>Futures</h1>
