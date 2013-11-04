@@ -24,7 +24,7 @@ x <- expr withFilter {
   }
 ```
 The remaining parts are translated to <code> map, flatMap, withFilter</code> according to standard for-comprehension rules.
-<h1>Generators</h1>
+<h1>Random Generators with For-Expressions</h1>
 <h1>Monads</h1>
 <h1>Futures</h1>
 <h1>Observables</h1>
