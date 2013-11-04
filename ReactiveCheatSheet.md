@@ -45,7 +45,11 @@ val integers = new Generator[Int] {
   def generate = rand.nextInt()
 }
 ````
-With these definition, and a basic definition of <code>integer</code> generator, we can map it to other domains like 
+With these definition, and a basic definition of <code>integer</code> generator, we can map it to other domains like <code>booleans, pairs, intervals</code> using for-expression magic
+```scala
+val booleans = for {x <- integers} yield x > 0
+val pairs = for {x <- integers; y<- integers} yield (x, y)
+```
 <h1>Monads</h1>
 <h1>Futures</h1>
 <h1>Observables</h1>
