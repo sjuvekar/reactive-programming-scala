@@ -78,5 +78,3 @@ Monads help simplify for-expressions.
   for{x <- m} yield x == m
 ```
 
-<h1>Futures</h1>
-<h1>Observables</h1>
