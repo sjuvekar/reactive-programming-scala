@@ -77,4 +77,3 @@ Monads help simplify for-expressions.
 ```scala
   for{x <- m} yield x == m
 ```
-
