@@ -27,10 +27,10 @@ The remaining parts are translated to <code> map, flatMap, withFilter</code> acc
 <h1>Random Generators with For-Expressions</h1>
 The <code>map</code> and <code>flatMap</code> methods can be overridden to make a for-expression versatile, for example to generate random elements from an arbitrary collection like lists, sets etc. Define the following trait <code>Generator</code> to do this.
 ```scala
-trait Generator[T+] {
+trait Generator[+T] {
   self =>
   def generate: T
-  def map[S}(f: T => S) : Generator[S] = new Generator[S] {
+  def map[S](f: T => S) : Generator[S] = new Generator[S] {
     def generate = f(self.generate)
   }
   def flatMap[S](f: T => Generator[S]) : Generator[S] = new Generator[S] {
