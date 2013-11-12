@@ -19,6 +19,6 @@ The use of a stateful expression can complexify things. For a start, the evaluat
 
 But when a stateful variable is involved, the concept of equality is not as straightforward. "Being the same" is defined by the property of operational equivalence. x and y are operationally equivalent if no possible test can distinsuish between them.
 
-Considering two variables x and y, if you can a function f so that f(x, y) returns a different result than f(x, x) then x and y are different. If no such function exist x and y are the same.
+Considering two variables x and y, if you can create a function f so that f(x, y) returns a different result than f(x, x) then x and y are different. If no such function exist x and y are the same.
 
 As a consequence, the substitution model ceases to be valid when using assignments.
