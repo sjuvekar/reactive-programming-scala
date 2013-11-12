@@ -4,6 +4,9 @@ For-comprehensions are a 'simplified' way of writing some specific map, flatMap 
 <b>Read this for more on Monads:</b> <a href="https://github.com/sjuvekar/reactive-programming-scala/blob/master/Monads.md">https://github.com/sjuvekar/reactive-programming-scala/blob/master/Monads.md</a>
 
 <h1> Functional Programming and Mutable State </h1>
+Reactive systems need the objects to maintain and manipulate states. 
+
+<b> Read this to see what mutable states mean in functional programming context: </b> <a href="https://github.com/sjuvekar/reactive-programming-scala/blob/master/MutableStates.md">https://github.com/sjuvekar/reactive-programming-scala/blob/master/MutableStates.md</a>
 
 <h1>Futures</h1>
 
