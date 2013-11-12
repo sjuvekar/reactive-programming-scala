@@ -3,6 +3,8 @@ For-comprehensions are a 'simplified' way of writing some specific map, flatMap 
 
 <b>Read this for more on Monads:</b> <a href="https://github.com/sjuvekar/reactive-programming-scala/blob/master/Monads.md">https://github.com/sjuvekar/reactive-programming-scala/blob/master/Monads.md</a>
 
+<h1> Functional Programming and Mutable State </h1>
+
 <h1>Futures</h1>
 
 <h1>Actors and Concurrency</h1>
