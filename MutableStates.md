@@ -4,7 +4,7 @@ In a pure functional state, programs are side-effect free, and the concept of ti
 
 When evaluating a pure functional expression using the substitution model, no matter the evaluation order of the various sub-expressions, the result will be the same (some ways may take longer than others). An exception may be in the case where a aub-expression is never evaluated (e.g. second argument) but whose evaluation would loop forever.
 
-<h1>Mutable state</ha>
+<h1>Mutable state</h1>
 
 In a reactive system, some states eventually need to be changed in a mutable fashion. An object has a state if its behavior has a history. Every form of mutable state is constructed from variables:
 
