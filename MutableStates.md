@@ -47,6 +47,13 @@ can be modeled using function <tt>WHILE</tt> as
 <h2>For loop</h2>
 The treatment of for loops is similar to the <b>For-Comprehensions</b> commonly used in functional programming. The general expression for <tt>for loop</tt> equivalent in Scala is 
 ```scala
-    for(v1 <- e1, v2 <- e2, ..., v_n <- e_n) command
+    for(v1 <- e1; v2 <- e2; ...; v_n <- e_n) command
 ```
-Note a few subtle differences from a For-expreesion. There is no <tt>yield</tt> expression, <tt>command</tt> can contain mutable states and <tt>e1, e2, ..., e_n</tt> are expressions over arbitrary Scala collections. This for loop is 
+Note a few subtle differences from a For-expreesion. There is no <tt>yield</tt> expression, <tt>command</tt> can contain mutable states and <tt>e1, e2, ..., e_n</tt> are expressions over arbitrary Scala collections. This for loop is translated by Scala using a <b>foreach</b> combinator defined over any arbitrary collection. The signature for <b>foreach</b> over collection <b>T</b> looks like this
+```scala
+def foreach(f: T => Unit) : Unit
+```
+Using foreach, the general for loop is translated as follows:
+```scala
+    for(v1 <- e1; v2 <- e2; ...; v_n <- e_n) command = e1 foreach (v1 => for(v2 <- e2; ...; v_n <- e_n) command)
+```
