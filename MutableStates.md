@@ -43,3 +43,10 @@ can be modeled using function <tt>WHILE</tt> as
     <li> <b>WHILE</b> is <b>tail recursive</b></li>
 </ul>
     
+
+<h2>For loop</h2>
+The treatment of for loops is similar to the <b>For-Comprehensions</b> commonly used in functional programming. The general expression for <tt>for loop</tt> equivalent in Scala is 
+```scala
+    for(v1 <- e1, v2 <- e2, ..., v_n <- e_n) command
+```
+Note a few subtle differences from a For-expreesion. There is no <tt>yield</tt> expression, <tt>command</tt> can contain mutable states and <tt>e1, e2, ..., e_n</tt> are expressions over arbitrary Scala collections. This for loop is 
