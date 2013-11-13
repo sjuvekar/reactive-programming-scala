@@ -55,5 +55,6 @@ def foreach(f: T => Unit) : Unit
 ```
 Using foreach, the general for loop is translated as follows:
 ```scala
-    for(v1 <- e1; v2 <- e2; ...; v_n <- e_n) command = e1 foreach (v1 => for(v2 <- e2; ...; v_n <- e_n) command)
+    for(v1 <- e1; v2 <- e2; ...; v_n <- e_n) command = 
+        e1 foreach (v1 => for(v2 <- e2; ...; v_n <- e_n) command)
 ```
