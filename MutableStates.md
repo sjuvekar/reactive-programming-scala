@@ -35,6 +35,11 @@ can be modeled using function <tt>WHILE</tt> as
             command
             WHILE(condition)(command)
         }
-        else {
-        }
+        else ()
 ```
+<b>Note:</b> 
+<ul>
+    <li> Both <b> condition </b> and <b> command </b> are <b> passed by name </b></li>
+    <li> <b>WHILE</b> is <b>tail recursive</b></li>
+</ul>
+    
