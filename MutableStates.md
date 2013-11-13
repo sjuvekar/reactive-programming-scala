@@ -53,7 +53,7 @@ Note a few subtle differences from a For-expreesion. There is no <tt>yield</tt> 
 ```scala
 def foreach(f: T => Unit) : Unit
 ```
-Using foreach, the general for loop is translated as follows:
+Using foreach, the general for loop is recursively translated as follows:
 ```scala
     for(v1 <- e1; v2 <- e2; ...; v_n <- e_n) command = 
         e1 foreach (v1 => for(v2 <- e2; ...; v_n <- e_n) command)
