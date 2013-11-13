@@ -24,4 +24,17 @@ Considering two variables x and y, if you can create a function f so that f(x, y
 As a consequence, the substitution model ceases to be valid when using assignments.
 
 <h1> Loops </h1>
-Variables and assignments are enough to model all programs with mutable states and loops in essence are not required. <b>Loops can be modeled using functions </b>
+Variables and assignments are enough to model all programs with mutable states and loops in essence are not required. <b>Loops can be modeled using functions and lazy evaluation</b>. So, the expression
+```scala
+    while (condition) { command }
+```
+can be modeled using function <tt>WHILE</tt> as
+```scala
+    def WHILE(condition: => Boolean)(command: => Unit): Unit = 
+        if (condition) {
+            command
+            WHILE(condition)(command)
+        }
+        else {
+        }
+```
