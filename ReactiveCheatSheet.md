@@ -1,6 +1,6 @@
 ---
 layout: page
-title: Cheat Sheet
+title: Reactive Cheat Sheet
 ---
 
 This cheat sheet originated from the forums. There are certainly a lot of things that can be improved! If you would like to contribute, you have two options:
