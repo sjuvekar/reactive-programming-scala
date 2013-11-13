@@ -12,7 +12,7 @@ In a reactive system, some states eventually need to be changed in a mutable fas
     x = "hi"
     var nb = 42
 
-The use of a stateful expression can complexify things. For a start, the evaluation order may matter. Also, the concept of identity and change gets more complex. When are two expressions considered the same? In the following (pure functional) example, x and y are always the same (concept of referential transparency):
+The use of a stateful expression can complexify things. For a start, the evaluation order may matter. Also, the concept of identity and change gets more complex. When are two expressions considered the same? In the following (pure functional) example, x and y are always the same (concept of <b>referential transparency</b>):
 
     val x = E; val y = E
     val x = E; val y = x
