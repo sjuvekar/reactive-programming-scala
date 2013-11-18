@@ -172,6 +172,14 @@ Now consider a sequence of scala method calls:
 val o1 = SomeTrait()
 val o2 = o1.f1()
 val o3 = o2.f2()
-...
 ```
-All of these method calls are synchronous, blocking and the sequence computes to completion as long as none of the intermediate methods throw an exception. But what if one of the methods, say `f2` does throw an exception? The `Try` class defined above helps handle these exceptions elegantly, provided we change return types of all methods to `Try[T]`.
+All of these method calls are synchronous, blocking and the sequence computes to completion as long as none of the intermediate methods throw an exception. But what if one of the methods, say `f2` does throw an exception? The `Try` class defined above helps handle these exceptions elegantly, provided we change return types of all methods `f1, f2, ...` to `Try[T]`. Because then, the sequence of method calls translates into an elegant for-comprehension:
+```scala
+val o1 = SomeTrait()
+val ans = for {
+    o2 <- o1.f1();
+    o3 <- o2.f2()
+} yield o3
+```
+
+
