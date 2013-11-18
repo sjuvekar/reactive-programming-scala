@@ -174,4 +174,4 @@ val o2 = o1.f1()
 val o3 = o2.f2()
 ...
 ```
-All of these method calls are synchronous, blocking and the sequence computes to completion as long as none of the intermediate methods throw an exception. 
+All of these method calls are synchronous, blocking and the sequence computes to completion as long as none of the intermediate methods throw an exception. But what if one of the methods, say `f2` does throw an exception? The `Try` class defined above helps handle these exceptions elegantly, provided we change return types of all methods to `Try[T]`.
