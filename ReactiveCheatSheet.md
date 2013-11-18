@@ -184,4 +184,14 @@ val ans = for {
 This transformation is possible because `Try` satisfies 2 properties related to `flatMap` and `unit` of a **monad**. If any of the intermediate methods `f1, f2` throws and exception, value of `ans` becomes `Failure`. Otherwise, it becomes `Success[T]`.
 
 ## Monads and Latency ##
-The Try Class in previous section worked on synchronous computation. Synchronous programs with side effects block the subsequent instructions as long as the current computation runs.
+The Try Class in previous section worked on synchronous computation. Synchronous programs with side effects block the subsequent instructions as long as the current computation runs. Blocking on expensive computation might render the entire program slow!. **Future** is a type of monad the helps handle exceptions and latency and turns the program in a non-blocking asynchronous program.
+#### Future[T] ####
+Future trait is defined in scala.concurrent as:
+```scala
+trait Future[T] {
+    def onComplete(callback: Try[T] => Unit)
+    (implicit executor: ExecutionContext): Unit
+}
+```
+The Future trait contains a method `onComplete` which itself takes a method, `callback` to be called as soon as the value of current Future is available.
+    
