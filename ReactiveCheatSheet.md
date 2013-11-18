@@ -181,5 +181,5 @@ val ans = for {
     o3 <- o2.f2()
 } yield o3
 ```
-This transformation is possible because `Try` satisfies 2 properties related to `flatMap` and `unit` of a #monad#. If any of the intermediate methods `f1, f2` throws and exception, value of `ans` becomes `Failure`. Otherwise, it becomes `Success[T]`.
+This transformation is possible because `Try` satisfies 2 properties related to `flatMap` and `unit` of a **monad**. If any of the intermediate methods `f1, f2` throws and exception, value of `ans` becomes `Failure`. Otherwise, it becomes `Success[T]`.
 
