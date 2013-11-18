@@ -160,7 +160,7 @@ Using foreach, the general for loop is recursively translated as follows:
         
 ## Monads and Effect ##
 Monads and their operations like flatMap help us handle programs with side-effects (like exceptions) elegantly. This is best demonstrated by a Try-expression. <b>Note: </b> Try-expression is not strictly a Monad because it does not satisfy all three laws of Monad mentioned above. Although, it still helps handle expressions with exceptions. 
-#### Try Class ####
+#### Try[T] ####
 The parametric Try class as defined in Scala.util looks like this:
 ```scala
 abstract class Try[T]
@@ -183,3 +183,5 @@ val ans = for {
 ```
 This transformation is possible because `Try` satisfies 2 properties related to `flatMap` and `unit` of a **monad**. If any of the intermediate methods `f1, f2` throws and exception, value of `ans` becomes `Failure`. Otherwise, it becomes `Success[T]`.
 
+### Monads and Latency ###
+The Try Class in previous section worked on synchronous computation. 
