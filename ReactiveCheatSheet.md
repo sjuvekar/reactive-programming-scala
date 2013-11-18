@@ -157,3 +157,5 @@ Using foreach, the general for loop is recursively translated as follows:
 
     for(v1 <- e1; v2 <- e2; ...; v_n <- e_n) command = 
         e1 foreach (v1 => for(v2 <- e2; ...; v_n <- e_n) command)
+        
+### Monads and Effect ###
