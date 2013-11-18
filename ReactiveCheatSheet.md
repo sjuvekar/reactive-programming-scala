@@ -159,3 +159,4 @@ Using foreach, the general for loop is recursively translated as follows:
         e1 foreach (v1 => for(v2 <- e2; ...; v_n <- e_n) command)
         
 ## Monads and Effect ##
+Monads and their operations like flatMap help us handle programs with side-effects (like exceptions) elegantly.
