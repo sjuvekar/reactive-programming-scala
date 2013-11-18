@@ -193,5 +193,11 @@ trait Future[T] {
     (implicit executor: ExecutionContext): Unit
 }
 ```
-The Future trait contains a method `onComplete` which itself takes a method, `callback` to be called as soon as the value of current Future is available.
+The Future trait contains a method `onComplete` which itself takes a method, `callback` to be called as soon as the value of current Future is available. The insight into working of Future can be obtained by looking at its companion object:
+```scala
+object Future {
+    def apply(body: => T)(implicit context: ExecutionContext): Future[T]
+}
+```
+This object has an apply methos that starts an asynchronous computation in current context, returns a `Future` object. We can then subsribe to this `Future` object to be notified when the computation finishes.
     
