@@ -183,5 +183,5 @@ val ans = for {
 ```
 This transformation is possible because `Try` satisfies 2 properties related to `flatMap` and `unit` of a **monad**. If any of the intermediate methods `f1, f2` throws and exception, value of `ans` becomes `Failure`. Otherwise, it becomes `Success[T]`.
 
-### Monads and Latency ###
+## Monads and Latency ##
 The Try Class in previous section worked on synchronous computation. 
