@@ -162,58 +162,58 @@ Using foreach, the general for loop is recursively translated as follows:
 Monads and their operations like flatMap help us handle programs with side-effects (like exceptions) elegantly. This is best demonstrated by a Try-expression. <b>Note: </b> Try-expression is not strictly a Monad because it does not satisfy all three laws of Monad mentioned above. Although, it still helps handle expressions with exceptions. 
 #### Try[T] ####
 The parametric Try class as defined in Scala.util looks like this:
-```scala
-abstract class Try[T]
-case class Success[T](elem: T) extends Try[T]
-case class Failure(t: Throwable) extends Try[Nothing]
-```
+
+    abstract class Try[T]
+    case class Success[T](elem: T) extends Try[T]
+    case class Failure(t: Throwable) extends Try[Nothing]
+
 Now consider a sequence of scala method calls:
-```scala
-val o1 = SomeTrait()
-val o2 = o1.f1()
-val o3 = o2.f2()
-```
+
+    val o1 = SomeTrait()
+    val o2 = o1.f1()
+    val o3 = o2.f2()
+
 All of these method calls are synchronous, blocking and the sequence computes to completion as long as none of the intermediate methods throw an exception. But what if one of the methods, say `f2` does throw an exception? The `Try` class defined above helps handle these exceptions elegantly, provided we change return types of all methods `f1, f2, ...` to `Try[T]`. Because then, the sequence of method calls translates into an elegant for-comprehension:
-```scala
-val o1 = SomeTrait()
-val ans = for {
-    o2 <- o1.f1();
-    o3 <- o2.f2()
-} yield o3
-```
+
+    val o1 = SomeTrait()
+    val ans = for {
+        o2 <- o1.f1();
+        o3 <- o2.f2()
+    } yield o3
+
 This transformation is possible because `Try` satisfies 2 properties related to `flatMap` and `unit` of a **monad**. If any of the intermediate methods `f1, f2` throws and exception, value of `ans` becomes `Failure`. Otherwise, it becomes `Success[T]`.
 
 ## Monads and Latency ##
 The Try Class in previous section worked on synchronous computation. Synchronous programs with side effects block the subsequent instructions as long as the current computation runs. Blocking on expensive computation might render the entire program slow!. **Future** is a type of monad the helps handle exceptions and latency and turns the program in a non-blocking asynchronous program.
 #### Future[T] ####
 Future trait is defined in scala.concurrent as:
-```scala
-trait Future[T] {
-    def onComplete(callback: Try[T] => Unit)
-    (implicit executor: ExecutionContext): Unit
-}
-```
+
+    trait Future[T] {
+        def onComplete(callback: Try[T] => Unit)
+        (implicit executor: ExecutionContext): Unit
+    }
+
 The Future trait contains a method `onComplete` which itself takes a method, `callback` to be called as soon as the value of current Future is available. The insight into working of Future can be obtained by looking at its companion object:
-```scala
-object Future {
-    def apply(body: => T)(implicit context: ExecutionContext): Future[T]
-}
-```
+
+    object Future {
+        def apply(body: => T)(implicit context: ExecutionContext): Future[T]
+    }
+
 This object has an apply methos that starts an asynchronous computation in current context, returns a `Future` object. We can then subsribe to this `Future` object to be notified when the computation finishes.
     
 #### Combinators on Future ####
 A `Future` is a `Monad` and has `map`, `filter`, `flatMap` defined on it. In addition, Scala's Futures define two additional methods:
-```scala
-def recover(f: PartialFunction[Throwable, T]): Future[T]
-def recoverWith(f: PartialFunction[Throwable, Future[T]]): Future[T]
-```
+
+    def recover(f: PartialFunction[Throwable, T]): Future[T]
+    def recoverWith(f: PartialFunction[Throwable, Future[T]]): Future[T]
+
 These functions return robust features in case current features fail. 
 
 Finally, a `Future` extends from a trait called `Awaitable` that has two blocking methods, `ready` and `result` which take the value 'out of' the Future. The signatures of these methods are
-```scala
-trait Awaitable[T] extends AnyRef {
-    abstract def ready(t: Duration): Unit
-    abstract def result(t: Duration): T
-}
-```
+
+    trait Awaitable[T] extends AnyRef {
+        abstract def ready(t: Duration): Unit
+        abstract def result(t: Duration): T
+    }
+
 Both these methods block the current execution for a duration of `t`. If the future completes its execution, they return: `result` returns the actual value of the computation, while `ready` returns a Unit. If the future fails to complete within time t, the methods throw a `TimeoutException`.
