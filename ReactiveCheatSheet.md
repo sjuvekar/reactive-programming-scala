@@ -202,4 +202,9 @@ object Future {
 This object has an apply methos that starts an asynchronous computation in current context, returns a `Future` object. We can then subsribe to this `Future` object to be notified when the computation finishes.
     
 #### Combinators on Future ####
-A `Future` is a `Monad` and hence has `map`, `filter`, `flatMap` defined on it.
+A `Future` is a `Monad` and hence has `map`, `filter`, `flatMap` defined on it. In addition, Scala's Futures define two additional methods:
+```scala
+def recover(f: PartialFunction[Throwable, T]): Future[T]
+def recoverWith(f: PartialFunction[Throwable, Future[T]]): Future[T]
+```
+These functions return robust features in case current features fail. 
