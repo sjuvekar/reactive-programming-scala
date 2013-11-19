@@ -202,9 +202,18 @@ object Future {
 This object has an apply methos that starts an asynchronous computation in current context, returns a `Future` object. We can then subsribe to this `Future` object to be notified when the computation finishes.
     
 #### Combinators on Future ####
-A `Future` is a `Monad` and hence has `map`, `filter`, `flatMap` defined on it. In addition, Scala's Futures define two additional methods:
+A `Future` is a `Monad` and has `map`, `filter`, `flatMap` defined on it. In addition, Scala's Futures define two additional methods:
 ```scala
 def recover(f: PartialFunction[Throwable, T]): Future[T]
 def recoverWith(f: PartialFunction[Throwable, Future[T]]): Future[T]
 ```
 These functions return robust features in case current features fail. 
+
+Finally, a `Future` extends from a trait called `Awaitable` that has two blocking methods, `ready` and `result` which take the value 'out of' the Future. The signatures of these methods are
+```scala
+trait Awaitable[T] extends AnyRef {
+    abstract def ready(t: Duration): Unit
+    abstract def result(t: Duration): T
+}
+```
+Both these methods block the current execution for a duration of `t`. If the future completes its execution, they return: `result` returns the actual value of the computation, while `ready` returns a Unit. If the future fails to complete within time t, the methods throw a `TimeoutException`.
