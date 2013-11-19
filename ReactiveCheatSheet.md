@@ -201,3 +201,5 @@ object Future {
 ```
 This object has an apply methos that starts an asynchronous computation in current context, returns a `Future` object. We can then subsribe to this `Future` object to be notified when the computation finishes.
     
+#### Combinators on Future ####
+A `Future` is a `Monad` and hence has `map`, `filter`, `flatMap` defined on it.
