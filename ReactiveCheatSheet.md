@@ -9,7 +9,7 @@ Click the "Edit" button on this file on GitHub:
 [https://github.com/sjuvekar/reactive-programming-scala/blob/master/ReactiveCheatSheet.md](https://github.com/sjuvekar/reactive-programming-scala/edit/master/ReactiveCheatSheet.md)
 You can submit a pull request directly from there without checking out the git repository to your local machine.
 
-Fork the repository [https://github.com/sjuvekar/reactive-programming-scala/](ttps://github.com/sjuvekar/reactive-programming-scala/) and check it out locally. To preview your changes, you need jekyll. Navigate to your checkout and invoke jekyll --auto --server, then open the page http://localhost:4000/ReactiveCheatSheet.html.
+Fork the repository [https://github.com/sjuvekar/reactive-programming-scala/](https://github.com/sjuvekar/reactive-programming-scala/) and check it out locally. To preview your changes, you need jekyll. Navigate to your checkout and invoke jekyll --auto --server, then open the page http://localhost:4000/ReactiveCheatSheet.html.
 
 
 # Partial Functions #
