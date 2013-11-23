@@ -167,6 +167,21 @@ The parametric Try class as defined in Scala.util looks like this:
     case class Success[T](elem: T) extends Try[T]
     case class Failure(t: Throwable) extends Try[Nothing]
 
+`Try[T]` can either be `Success[T]` or `Failure(t: Throwable)`
+
+    import Scala.util.{Try, Success, Failure}
+
+    def answerToLife(nb: Int) : Try[Int] = {
+      if (nb == 42) Success(nb)
+      else Failure(new Exception("WRONG"))
+    }
+
+    answerToLife(42) match {
+      case Success(t)           => t        // returns 42
+      case failure @ Failure(e) => failure  // returns Failure(java.Lang.Exception: WRONG)
+    }
+
+
 Now consider a sequence of scala method calls:
 
     val o1 = SomeTrait()
@@ -199,7 +214,32 @@ The Future trait contains a method `onComplete` which itself takes a method, `ca
         def apply(body: => T)(implicit context: ExecutionContext): Future[T]
     }
 
-This object has an apply methos that starts an asynchronous computation in current context, returns a `Future` object. We can then subsribe to this `Future` object to be notified when the computation finishes.
+This object has an apply method that starts an asynchronous computation in current context, returns a `Future` object. We can then subsribe to this `Future` object to be notified when the computation finishes.
+
+    import scala.concurrent._
+    import ExecutionContext.Implicits.global
+
+    // The function to be run asyncronously
+    val answerToLife: Future[Int] = future {
+      42
+    }
+
+    // These are various callback functions that can be defined  
+    answerToLife onComplete {
+      case Success(result) => result
+      case Failure(t) => println("An error has occured: " + t.getMessage)
+    }
+
+    answerToLife onSuccess {
+      case result => result
+    }
+  
+    answerToLife onFailure {
+      case t => println("An error has occured: " + t.getMessage)
+    }
+    
+    answerToLife.now    // only works if the future is completed
+
     
 #### Combinators on Future ####
 A `Future` is a `Monad` and has `map`, `filter`, `flatMap` defined on it. In addition, Scala's Futures define two additional methods:
@@ -217,3 +257,36 @@ Finally, a `Future` extends from a trait called `Awaitable` that has two blockin
     }
 
 Both these methods block the current execution for a duration of `t`. If the future completes its execution, they return: `result` returns the actual value of the computation, while `ready` returns a Unit. If the future fails to complete within time t, the methods throw a `TimeoutException`.
+
+#### async and await
+
+Async and await allow to run some part of the code aynchronously. The following code computes asynchronously any future inside the `await` block
+
+    import scala.async.Async._
+
+    def retry(noTimes: Int)(block: => Future[T]): Future[T] = async {
+      var i = 0;
+      var result: Try[T] = Failure(new Exception("Problem!"))
+      while (i < noTimes && result.isFailure) {
+        result = await { Try(block) }
+        i += 1
+      }
+      result.get
+    }
+
+#### Promises
+
+Another way to create future is through the Promise monad:
+
+    trait Promise[T]
+      def future: Future[T]
+      def complete(result: Try[T]): Unit
+      def tryComplete(result: Try[T]): Boolean
+    }
+
+It is used as follows:
+
+    val p = Promise[T]  // defines a promise
+    p.future            // returns a future that will complete when p.complete() is called
+    p.complete(Try[T])  // completes the future
+    p success T         // successfully completes the promise
