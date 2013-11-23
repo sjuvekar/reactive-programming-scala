@@ -258,6 +258,11 @@ Finally, a `Future` extends from a trait called `Awaitable` that has two blockin
 
 Both these methods block the current execution for a duration of `t`. If the future completes its execution, they return: `result` returns the actual value of the computation, while `ready` returns a Unit. If the future fails to complete within time t, the methods throw a `TimeoutException`.
 
+`Await` can be used to wait for a future with a specified timeout, e.g.
+
+    userInput: Future[String] = ...
+    Await.result(userInput, 10 seconds)   // waits for user input for 10 seconds, after which throws a TimeoutException
+
 #### async and await
 
 Async and await allow to run some part of the code aynchronously. The following code computes asynchronously any future inside the `await` block
