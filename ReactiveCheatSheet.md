@@ -9,10 +9,10 @@ Click the "Edit" button on this file on GitHub:
 [https://github.com/sjuvekar/reactive-programming-scala/blob/master/ReactiveCheatSheet.md](https://github.com/sjuvekar/reactive-programming-scala/edit/master/ReactiveCheatSheet.md)
 You can submit a pull request directly from there without checking out the git repository to your local machine.
 
-Fork the repository [https://github.com/sjuvekar/reactive-programming-scala/](https://github.com/sjuvekar/reactive-programming-scala/) and check it out locally. To preview your changes, you need jekyll. Navigate to your checkout and invoke jekyll --auto --server, then open the page http://localhost:4000/ReactiveCheatSheet.html.
+Fork the repository [https://github.com/sjuvekar/reactive-programming-scala/](https://github.com/sjuvekar/reactive-programming-scala/) and check it out locally. To preview your changes, you need jekyll. Navigate to your checkout and invoke `jekyll serve --watch` (or `jekyll --auto --server` if you have an older jekyll version), then open the page `http://localhost:4000/ReactiveCheatSheet.html`.
 
 
-# Partial Functions #
+## Partial Functions
 
 A subtype of trait `Function1` that is well defined on a subset of its domain.
 
@@ -23,9 +23,26 @@ A subtype of trait `Function1` that is well defined on a subset of its domain.
 
 Every concrete implementation of PartialFunction has the usual `apply` method along with a boolean method `isDefinedAt`.
 
-**Important:** An implementation of partialFunction can return `true` for `isDefinedAt` but still end up throwing RuntimeException (like MatchException in pattern-matching implementation).
+**Important:** An implementation of PartialFunction can return `true` for `isDefinedAt` but still end up throwing RuntimeException (like MatchError in pattern-matching implementation).
 
-# For-Comprehension and Pattern Matching#
+A concise way of constructing partial functions is shown in the following example:
+
+    trait Coin {}
+    case class Gold() extends Coin {}
+    case class Silver() extends Coin {}
+    
+    val pf: PartialFunction[Coin, String] = {
+      case Gold() => "a golden coin"
+      // no case for Silver(), because we're only interested in Gold()
+    }
+    
+    println(pf.isDefinedAt(Gold()))   // true 
+    println(pf.isDefinedAt(Silver())) // false
+    println(pf(Gold()))               // a golden coin
+    println(pf(Silver()))             // throws a scala.MatchError
+
+
+## For-Comprehension and Pattern Matching
 
 A general For-Comprehension is described in Scala Cheat Sheet here: https://github.com/lrytz/progfun-wiki/blob/gh-pages/CheatSheet.md One can also use Patterns inside for-expression. The simplest form of for-expression pattern looks like
 
@@ -42,7 +59,8 @@ where `pat` is a pattern containing a single variable `x`. We translate the `pat
 
 The remaining parts are translated to ` map, flatMap, withFilter` according to standard for-comprehension rules.
 
-# Random Generators with For-Expressions #
+
+## Random Generators with For-Expressions
 
 The `map` and `flatMap` methods can be overridden to make a for-expression versatile, for example to generate random elements from an arbitrary collection like lists, sets etc. Define the following trait `Generator` to do this.
 
@@ -69,7 +87,8 @@ With these definition, and a basic definition of `integer` generator, we can map
     val pairs = for {x <- integers; y<- integers} yield (x, y)
     def interval(lo: Int, hi: Int) : Generator[Int] = for { X <- integers } yield lo + x % (hi - lo)
 
-# Monads #
+
+## Monads
 
 A monad is a parametric type M[T] with two operations: `flatMap` and `unit`. 
 
@@ -87,7 +106,8 @@ These operations must satisfy three important properties:
 
 Many standard Scala Objects like `List, Set, Option, Gen` are monads with identical implementation of `flatMap` and specialized implementation of `unit`. An example of non-monad is a special `Try` object that fails with a non-fatal exception because it fails to satisfy Left unit (See lectures). 
 
-# Monads and For-Expression #
+
+## Monads and For-Expression
 
 Monads help simplify for-expressions. 
 
@@ -99,13 +119,15 @@ Monads help simplify for-expressions.
 
     for{x <- m} yield x == m
 
-# Pure functional programming #
+
+## Pure functional programming
 
 In a pure functional state, programs are side-effect free, and the concept of time isn't important (i.e. redoing the same steps in the same order produces the same result).
 
 When evaluating a pure functional expression using the substitution model, no matter the evaluation order of the various sub-expressions, the result will be the same (some ways may take longer than others). An exception may be in the case where a sub-expression is never evaluated (e.g. second argument) but whose evaluation would loop forever.
 
-# Mutable state #
+
+## Mutable state
 
 In a reactive system, some states eventually need to be changed in a mutable fashion. An object has a state if its behavior has a history. Every form of mutable state is constructed from variables:
 
@@ -124,7 +146,8 @@ Considering two variables x and y, if you can create a function f so that f(x, y
 
 As a consequence, the substitution model ceases to be valid when using assignments.
 
-# Loops #
+
+## Loops
 
 Variables and assignments are enough to model all programs with mutable states and loops in essence are not required. <b>Loops can be modeled using functions and lazy evaluation</b>. So, the expression
 
@@ -143,7 +166,8 @@ can be modeled using function <tt>WHILE</tt> as
 * Both **condition** and **command** are **passed by name**
 * **WHILE** is **tail recursive**
 
-## For loop ##
+
+## For loop
 
 The treatment of for loops is similar to the <b>For-Comprehensions</b> commonly used in functional programming. The general expression for <tt>for loop</tt> equivalent in Scala is
 
@@ -157,10 +181,15 @@ Using foreach, the general for loop is recursively translated as follows:
 
     for(v1 <- e1; v2 <- e2; ...; v_n <- e_n) command = 
         e1 foreach (v1 => for(v2 <- e2; ...; v_n <- e_n) command)
-        
-## Monads and Effect ##
+
+
+## Monads and Effect
+
 Monads and their operations like flatMap help us handle programs with side-effects (like exceptions) elegantly. This is best demonstrated by a Try-expression. <b>Note: </b> Try-expression is not strictly a Monad because it does not satisfy all three laws of Monad mentioned above. Although, it still helps handle expressions with exceptions. 
-#### Try[T] ####
+
+
+#### Try
+
 The parametric Try class as defined in Scala.util looks like this:
 
     abstract class Try[T]
@@ -198,9 +227,14 @@ All of these method calls are synchronous, blocking and the sequence computes to
 
 This transformation is possible because `Try` satisfies 2 properties related to `flatMap` and `unit` of a **monad**. If any of the intermediate methods `f1, f2` throws and exception, value of `ans` becomes `Failure`. Otherwise, it becomes `Success[T]`.
 
-## Monads and Latency ##
+
+## Monads and Latency
+
 The Try Class in previous section worked on synchronous computation. Synchronous programs with side effects block the subsequent instructions as long as the current computation runs. Blocking on expensive computation might render the entire program slow!. **Future** is a type of monad the helps handle exceptions and latency and turns the program in a non-blocking asynchronous program.
-#### Future[T] ####
+
+
+#### Future
+
 Future trait is defined in scala.concurrent as:
 
     trait Future[T] {
@@ -240,8 +274,9 @@ This object has an apply method that starts an asynchronous computation in curre
     
     answerToLife.now    // only works if the future is completed
 
-    
-#### Combinators on Future ####
+
+#### Combinators on Future
+
 A `Future` is a `Monad` and has `map`, `filter`, `flatMap` defined on it. In addition, Scala's Futures define two additional methods:
 
     def recover(f: PartialFunction[Throwable, T]): Future[T]
@@ -263,6 +298,7 @@ Both these methods block the current execution for a duration of `t`. If the fut
     userInput: Future[String] = ...
     Await.result(userInput, 10 seconds)   // waits for user input for 10 seconds, after which throws a TimeoutException
 
+
 #### async and await
 
 Async and await allow to run some part of the code aynchronously. The following code computes asynchronously any future inside the `await` block
@@ -278,6 +314,7 @@ Async and await allow to run some part of the code aynchronously. The following 
       }
       result.get
     }
+
 
 #### Promises
 
