@@ -23,7 +23,24 @@ A subtype of trait `Function1` that is well defined on a subset of its domain.
 
 Every concrete implementation of PartialFunction has the usual `apply` method along with a boolean method `isDefinedAt`.
 
-**Important:** An implementation of partialFunction can return `true` for `isDefinedAt` but still end up throwing RuntimeException (like MatchException in pattern-matching implementation).
+**Important:** An implementation of PartialFunction can return `true` for `isDefinedAt` but still end up throwing RuntimeException (like MatchError in pattern-matching implementation).
+
+A concise way of constructing partial functions is shown in the following example:
+
+    trait Coin {}
+    case class Gold() extends Coin {}
+    case class Silver() extends Coin {}
+    
+    val pf: PartialFunction[Coin, String] = {
+      case Gold() => "a golden coin"
+      // no case for Silver(), because we're only interested in Gold()
+    }
+    
+    println(pf.isDefinedAt(Gold()))   // true 
+    println(pf.isDefinedAt(Silver())) // false
+    println(pf(Gold()))               // "a golden coin"
+    println(pf(Silver()))             // throws a scala.MatchError
+
 
 # For-Comprehension and Pattern Matching#
 
