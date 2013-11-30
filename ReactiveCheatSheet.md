@@ -332,3 +332,117 @@ It is used as follows:
     p.future            // returns a future that will complete when p.complete() is called
     p.complete(Try[T])  // completes the future
     p success T         // successfully completes the promise
+
+## Observables
+Observables are asynchronous streams of data. Contrary to Futures, they can return multiple values.
+
+    trait Observable[T] {
+      def Subscribe(observer: Observer[T]): Subscription
+    }
+
+    trait Observer[T] {
+      def onNext(value: T): Unit            // callback function when there's a next value
+      def onError(error: Throwable): Unit  // callback function where there's an error
+      def onCompleted(): Unit              // callback function when there is no more value
+    }
+
+    trait Subscription {
+      def unsubscribe(): Unit    // to call when we're not interested in recieving any more values
+    }
+
+Observables can be used as follows:
+
+    import rx.lang.scala._
+
+    val ticks: Observable[Long] = Observable.interval(1 seconds)
+    val evens: Observable[Long] = ticks.filter(s => s%2 == 0)
+    
+    val bugs: Observable[Seq[Long]] = ticks.buffer(2, 1)
+    val s = bugs.subscribe(b=>println(b))
+
+    s.unsubscribe()
+
+Some observable functions (see more at http://rxscala.github.io/scaladoc/index.html#rx.lang.scala.Observable):
+
+- `Observable[T].flapmap(T => Observable[T]): Observable[T]` merges a list of observables into a single observable in a non-deterministic order
+- `Observable[T].concat(T => Observable[T]): Observable[T]` merges a list of observables into a single observable, putting the results of the first observable first, etc.
+- `groupBy[K](keySelector: T=>K): Observable[(K, Observable[T])]` returns an observable of observables, where the element are grouped by the key returned by `keySelector`
+
+#### Subscriptions
+
+Subscriptions are returned by Observables to allow to unsubscribe. With hot observables, all subscribers share the same source, which produces results independent of subscribers. With cold observablesm each subscriber has its own private source. If there is no subscriber no computation is performed.
+
+Subscriptions have several subtypes: `BooleanSuscription` (was the subscription unsubscribed or not?), `CompositeSubscription` (collection of subscriptions that will be unsubscribed all at once), `MultipleAssignmentSubscription` (always has a single subscription at a time)
+
+    val subscription = Subscription { println("Bye") }
+    subscription.unsubscribe() // prints the message
+    subscription.unsubscribe() // doesn't print it again
+
+#### Creating Rx Streams
+
+Using the following constructor that takes an Observer and returns a Subscription
+
+    object Observable {
+      def apply[T](subscribe: Observer[T] => Subscription): Observable[T]
+    }
+
+It is possible to create several observables. The following functions suppose they are part of an Observable type (calls to `subscribe(...)` implicitely mean `this.subscribe(...)`):
+
+    // Observable never: never returns anything
+    def never(): Observable[Nothing] = Observable[Nothing](observer => { Subscription {} })
+
+    // Observable error: returns an error
+    def apply[T](error: Throwable): Observable[T] =
+        Observable[T](observer => {
+        observer.onError(error)
+        Subscription {}
+      }
+    )
+
+    // Observable startWith: prepends some elements in front of an Observable
+    def startWith(ss: T*): Observable[T] = {
+        Observable[T](observer => {
+        for(s <- ss) observer onNext(s)
+        subscribe(observer)
+      })
+    })
+
+    // filter: filters results based on a predicate
+    def filter(p: T=>Boolean): Observable[T] = {
+      Observable[T](observer => {
+        subscribe(
+          (t: T) => { if(p(t)) observer.onNext(t) },
+          (e: Thowable) => { observer.onError(e) },
+          () => { observer.onCompleted() }
+        )
+      })
+    }
+
+    // map: create an observable of a different type given a mapping function
+    def map(f: T=>S): Observable[S] = {
+      Observable[S](observer => {
+        subscribe(
+          (t: T) => { observer.onNext(f(t)) },
+          (e: Thowable) => { observer.onError(e) },
+          () => { observer.onCompleted() }
+        )
+      }
+    }
+
+    // Turns a Future into an Observable with just one value
+    def from(f: Future[T])(implicit execContext: ExecutionContext): Observable[T] = {
+        val subject = AsyncSubject[T]()
+        f onComplete {
+          case Failure(e) => { subject.onError(e) }
+          case Success(c) => { subject.onNext(c); subject.onCompleted() }
+        }
+        subject
+    }
+    
+
+#### Blocking Observables
+
+`Observable.toBlockingObservable()` returns a blocking observable (to use with care). Everything else is non-blocking.
+
+    val xs: Observable[Long] = Observable.interval(1 second).take(5)
+    val ys: List[Long] = xs.toBlockingObservable.toList
