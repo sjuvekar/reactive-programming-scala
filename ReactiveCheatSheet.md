@@ -370,9 +370,9 @@ Some observable functions (see more at http://rxscala.github.io/scaladoc/index.h
 
 #### Subscriptions
 
-Subscriptions are returned by Observables to allow to unsubscribe. With hot observables, all subscribers share the same source, which produces results independent of subscribers. With cold observablesm each subscriber has its own private source. If there is no subscriber no computation is performed.
+Subscriptions are returned by Observables to allow to unsubscribe. With hot observables, all subscribers share the same source, which produces results independent of subscribers. With cold observables each subscriber has its own private source. If there is no subscriber no computation is performed.
 
-Subscriptions have several subtypes: `BooleanSuscription` (was the subscription unsubscribed or not?), `CompositeSubscription` (collection of subscriptions that will be unsubscribed all at once), `MultipleAssignmentSubscription` (always has a single subscription at a time)
+Subscriptions have several subtypes: `BooleanSubscription` (was the subscription unsubscribed or not?), `CompositeSubscription` (collection of subscriptions that will be unsubscribed all at once), `MultipleAssignmentSubscription` (always has a single subscription at a time)
 
     val subscription = Subscription { println("Bye") }
     subscription.unsubscribe() // prints the message
