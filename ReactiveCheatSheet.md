@@ -446,3 +446,36 @@ It is possible to create several observables. The following functions suppose th
 
     val xs: Observable[Long] = Observable.interval(1 second).take(5)
     val ys: List[Long] = xs.toBlockingObservable.toList
+
+#### Schedulers
+
+Schedulers allow to run a block of code in a separate thread. The Subscription returned by its constructor allows to stop the scheduler.
+
+    trait Observable[T] {
+      def observeOn(scheduler: Scheduler): Observable[T]
+    }
+
+    trait Scheduler {
+      def schedule(work: => Unit): Subscription
+      def schedule(work: Scheduler => Subscription): Subscription
+      def schedule(work: (=>Unit)=>Unit): Subscription
+    }
+
+    val scheduler = Scheduler.NewThreadScheduler
+    val subscription = scheduler.schedule { // schedules the block on another thread
+      println("Hello world")
+    }
+
+
+    // Converts an iterable into an observable
+    // works even with an infinite iterable
+    def from[T](seq: Iterable[T])
+               (implicit scheduler: Scheduler): Obserable[T] = {
+       Observable[T](observer => {
+         val it = seq.iterator()
+         scheduler.schedule(self => {     // the block between { ... } is run in a separate thread
+           if (it.hasnext) { observer.onNext(it.next()); self() } // calling self() schedules the block of code to be executed again
+           else { observer.onCompleted() }
+         })
+       })
+    }
