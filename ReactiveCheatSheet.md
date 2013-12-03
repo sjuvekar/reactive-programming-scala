@@ -318,11 +318,11 @@ Async and await allow to run some part of the code aynchronously. The following 
 
 #### Promises
 
-Another way to create future is through the Promise monad:
+A Promise is a nomad which can be used to successfully complete a future with a value (thus completing the promise) or failed with an exception
 
     trait Promise[T]
       def future: Future[T]
-      def complete(result: Try[T]): Unit
+      def complete(result: Try[T]): Unit  // to call when the promise is completed
       def tryComplete(result: Try[T]): Boolean
     }
 
@@ -479,3 +479,182 @@ Schedulers allow to run a block of code in a separate thread. The Subscription r
          })
        })
     }
+
+## Actors
+
+Actors represent objects and their interactions, resembling human organizations. They are useful to deal with the complexity of writing multi-threaded applications (with their synchronizations, deadlocks, etc.)
+
+An actor has the following properties:
+- It is an object with an identity
+- It has a behavior
+- It only interacts using asynchronous message passing
+
+    type Receive = PartialFunction[Any, Unit]
+
+    trait Actor {
+      def receive: Receive
+    }
+
+Note: to use Actors in Eclipse you need to run a Run Configuration whose main class is `akka.Main` and whose Program argument is the full Main class name
+
+An actor can be used as follows:
+
+    import akka.actor._
+
+    class Counter extends Actor {
+      var count = 0
+      def receive = {
+        case "incr" => count += 1
+        case ("get", customer: ActorRef) => customer ! count // '!' means sends the message 'count' to the customer
+        case "get" => sender ! count // same as above, except sender means the sender of the message
+      }
+    }
+
+#### The Actor's Context
+
+The Actor type describes the behavior (represented by a Receive, which is a PartialFunction), the execution is done by its ActorContext. An Actor can change its behavior by either pushing a new behavior on top of a stack or just purely replace the old behavior.
+
+    trait ActorContext {
+      def become(behavior: Receive, discardOld: Boolean = true): Unit
+      def unbecome(): Unit
+      def actorOf(p: Props, name: String): ActorRef
+      def stop(a: ActorRef): Unit
+    }
+
+    trait Actor {
+      implicit val context: ActorContext
+      ...
+    }
+
+The following example is changing the Actor's behavior any time the amount is changed. The upside of this method is that 1) the state change is explicit and done by calling `context.become()` and 2) the state is scoped to the current behavior.
+
+    class Counter extends Actor {
+      def counter(n: Int): Receive = {
+        case "incr" => context.become(counter(n + 1))
+        case "get" => sender ! n
+      }
+      def receive = counter(0)
+    }
+
+Actors can also create and stop actors, creating a hierarchy.
+
+    class Main extends Actor {
+      val counter = context.actorOf(Props[Counter], "counter")  // creates a Counter instance
+
+      counter ! "incr"
+      counter ! "incr"
+      counter ! "incr"
+      counter ! "get"
+
+      def receive = {	// receives the messages from Counter
+        case count: Int =>
+          println(s"count was $count")
+          context.stop(self)
+        }
+      }
+    }
+
+## Message Processing Semantics
+
+There is no direct access to an actor behavior. Only messages can be sent to known adresses (`ActorRef`). Those adresses can be either be oneself (`self`), the address returned when creating a new actor, or when received by a message (e.g. `sender`)
+
+Actors are completely insulated from each other except for messages they send each other. Their computation can be run concurrently. However, a specific actor is single-threaded - its messages are received sequentially. Processing a message is the atomic unit of execution and cannot be interrupted.
+
+It is good practice to define an Actor's messages in its companion object. Here, each operation is effectively synchronized as all messages are serialized.
+
+    object BankAccount {
+      case class Deposit(amount: BigInt) {
+        require(amount > 0)
+      }
+      case class Withdraw(amount: BigInt) {
+        require(amount > 0)
+      }
+      case object Done
+      case object Failed
+    }
+
+    class BankAccount extends Actor {
+      import BankAccount._
+
+      var valance = BigInt(0)
+
+      def receive = {
+        case Deposit(amount) => balance += amount
+                                sender ! Done
+        case Withdraw(amount) if amount <= balance => balance -= amount
+                                                      sender ! Done
+        case _ => sender ! Failed
+      }
+    }
+
+Note that `pipeTo` can be used to foward a message (`theAccount deposit(500) pipeTo sender`)
+
+Because communication is through messages, there is no delivery guarantee. Hence the need of messages of acknowledgement and/or repeat. There are various strategies to deal with this:
+- at-most-once: send a message, without guarantee it will be received
+- at-least-once: keep sending messages until an ack is received
+- exactly-once: keep sending messages until an ack is received, but the recipient will only process the first message
+
+You can call `context.setReceiveTimeout(10.seconds)` that sets a timeout:
+
+    def receive = {
+      case Done => ...
+      case ReceiveTimeout => ... 
+    }
+
+The Akka library also includes a scheduler that sends a message or executes a block of code after a certain delay:
+
+    trait Scheduler {
+      def scheduleOnce(delay: FiniteDuration, target: ActorRef, msg: Any)
+      def scheduleOnce(delay: FiniteDuration)(block: => Unit)
+    }
+
+## Designing Actor Systems
+
+When designing an Actor system, it is useful to:
+- visualize a room full of people (i.e. the Actors)
+- consider the goal to achieve 
+- split the goal into subtasks that can be assigned to the various actors
+- who needs to talk to whom?
+- remember that you can easily create new Actors, even short-lived ones
+- watch out for any blocking part
+- prefer immutable data structures that can safely be shared
+- do not refer to actor state from code running asynchronously
+
+Consider a Web bot that recursively download content (down to a certain depth):
+- one Client Actor, which is sending download requests
+- one Receptionist Actor, responsible for accepting incoming download requests from Clients. The Receptionist forwards the request to the Controller
+- one Controller Actor, noting the pages already downloaded and dispatching the download jobs to Getter actors
+- one or more Getter Actors whose job is to download a URL, check its links and tell the Controller about those links
+- each message between the Controller and the Getter contains the depth level
+- once this is done, the Controller notifies the Receptionist, who remembers the Client who asked for that request and notifies it
+
+## Testing Actor Systems
+
+Tests can only verify externally observable effects. Akka's TestProbe allows to check that:
+
+    implicit val system = ActorSystem("TestSys")
+    val myActor = system.actorOf(Props[MyActor])
+    val p = TestProbe()
+    p.send(myActor, "Message")
+    p.exceptMsg("Ack")
+    p.send(myActor, "Message")
+    p.expectNoMsg(1.second)
+    system.shutdown()
+
+It can also be run from inside TestProbe:
+
+    new TestKit(ActorSystem("TestSys")) with ImplicitSender {
+      val myActor = system.actorOf(Props[MyActor])
+      myActor ! "Message"
+      expectMsg("Ack")
+      send(myActor, "Message")
+      expectNoMsg(1.second)
+      system.shutdown()
+    }
+
+You can use dependency injection when the system relies from external sources, like overriding factory methods that work as follows:
+- have a method that will call `Props[MyActor]`
+- its result is called by context.actorOf()
+- the test can define a "fake Actor" (`object FakeMyActor extends MyActor { ... }`) that will override the method
+
+You should start first the "leaves" actors and work your way to the parent actors.
