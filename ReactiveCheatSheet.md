@@ -364,7 +364,7 @@ Observables can be used as follows:
 
 Some observable functions (see more at http://rxscala.github.io/scaladoc/index.html#rx.lang.scala.Observable):
 
-- `Observable[T].flapmap(T => Observable[T]): Observable[T]` merges a list of observables into a single observable in a non-deterministic order
+- `Observable[T].flatMap(T => Observable[T]): Observable[T]` merges a list of observables into a single observable in a non-deterministic order
 - `Observable[T].concat(T => Observable[T]): Observable[T]` merges a list of observables into a single observable, putting the results of the first observable first, etc.
 - `groupBy[K](keySelector: T=>K): Observable[(K, Observable[T])]` returns an observable of observables, where the element are grouped by the key returned by `keySelector`
 
