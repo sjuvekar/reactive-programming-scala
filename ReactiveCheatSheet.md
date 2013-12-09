@@ -515,16 +515,24 @@ An actor can be used as follows:
 The Actor type describes the behavior (represented by a Receive, which is a PartialFunction), the execution is done by its ActorContext. An Actor can change its behavior by either pushing a new behavior on top of a stack or just purely replace the old behavior.
 
     trait ActorContext {
-      def become(behavior: Receive, discardOld: Boolean = true): Unit
-      def unbecome(): Unit
-      def actorOf(p: Props, name: String): ActorRef
-      def stop(a: ActorRef): Unit
+      def become(behavior: Receive, discardOld: Boolean = true): Unit // changes the behavior
+      def unbecome(): Unit                                            // reverts to the previous behavior
+      def actorOf(p: Props, name: String): ActorRef                   // creates a new actor
+      def stop(a: ActorRef): Unit                                     // stops an actor
+      def watch(target: ActorRed): ActorRef                           // watches whenever an Actor is stopped
+      def unwatch(target: ActorRed): ActorRef                         // unwatches
+      def parent: ActorRef                                            // the Actor's parent
+      def child(name: String): Option[ActorRef]                       // returns a child if it exists
+      def children: Iterable[ActorRef]                                // returns all supervised children
     }
 
-    trait Actor {
-      implicit val context: ActorContext
-      ...
+    class myActor extends Actor {
+       ...
+       context.parent ! aMessage // sends a message to the parent Actor
+       context.stop(self)        // stops oneself
+       ...
     }
+
 
 The following example is changing the Actor's behavior any time the amount is changed. The upside of this method is that 1) the state change is explicit and done by calling `context.become()` and 2) the state is scoped to the current behavior.
 
@@ -536,10 +544,15 @@ The following example is changing the Actor's behavior any time the amount is ch
       def receive = counter(0)
     }
 
-Actors can also create and stop actors, creating a hierarchy.
+#### Children and hierarchy
+
+Each Actor can create children actors, creating a hierarchy. Each actor maintains a list of the actors it created:
+- the child is added to the list when context.actorOf returns
+- the child is removed when Terminated is received
+- an actor name is available IF there is no such child. Actors are identified by their names, so they must be unique.
 
     class Main extends Actor {
-      val counter = context.actorOf(Props[Counter], "counter")  // creates a Counter instance
+      val counter = context.actorOf(Props[Counter], "counter")  // creates a Counter actor named "counter"
 
       counter ! "incr"
       counter ! "incr"
@@ -554,7 +567,7 @@ Actors can also create and stop actors, creating a hierarchy.
       }
     }
 
-## Message Processing Semantics
+#### Message Processing Semantics
 
 There is no direct access to an actor behavior. Only messages can be sent to known adresses (`ActorRef`). Those adresses can be either be oneself (`self`), the address returned when creating a new actor, or when received by a message (e.g. `sender`)
 
@@ -608,7 +621,7 @@ The Akka library also includes a scheduler that sends a message or executes a bl
       def scheduleOnce(delay: FiniteDuration)(block: => Unit)
     }
 
-## Designing Actor Systems
+#### Designing Actor Systems
 
 When designing an Actor system, it is useful to:
 - visualize a room full of people (i.e. the Actors)
@@ -628,7 +641,7 @@ Consider a Web bot that recursively download content (down to a certain depth):
 - each message between the Controller and the Getter contains the depth level
 - once this is done, the Controller notifies the Receptionist, who remembers the Client who asked for that request and notifies it
 
-## Testing Actor Systems
+#### Testing Actor Systems
 
 Tests can only verify externally observable effects. Akka's TestProbe allows to check that:
 
@@ -658,3 +671,112 @@ You can use dependency injection when the system relies from external sources, l
 - the test can define a "fake Actor" (`object FakeMyActor extends MyActor { ... }`) that will override the method
 
 You should start first the "leaves" actors and work your way to the parent actors.
+
+#### Failure handling with Actors
+
+What happens when an error happens with an actor? Where shall failures go? With the Actor models, Actors work together in teams (systems) and individual failures are handled by the team leader.
+
+Resilience demands containment (i.e. the failure is isolated so that it cannot spread to other components) and delegation of failure (i.e. it is handled by someone else and not the failed component)
+
+In the Supervisor model, the Supervisor needs to create its subordinates and will handle the exceptions encountered by its children. If a child fails, the supervisor may decide to stop it (`stop` message) or to restart it (`restart` message) to get it back to a known good state and initial behavior (in Akka, the ActorRef stays valid after a restart).
+
+An actor can decide a strategy by overriding `supervisorStrategy`, e.g.
+
+    class myActor extends Actor {
+      override val supervisorStrategy = OneForOneStrategy(maxNrOfRetries = 5) {
+         case _: Exception => SupervisorStrategy.Restart
+      }
+    }
+
+#### Lifecycle of an Actor
+
+- An Actor will have its context create a child Actor, who receives a preStart message.
+- In case of a failure, the supervisor gets consulted. The supervisor can stop the child or restart it (a restart is not externally visible). In case of a restart, the child Actor receives a preRestart message. A new instance of the actor is created, after which it receives a postRestart message. No message gets processed between the failure and the restart.
+- An actor can be restarted several times.
+- An actor can finally be stopped. It sends Stop to the context and will receive a postStop message.
+
+    trait Actor {
+      def preStart(): Unit
+      def preRestart(reason: Throwable, message: Option[Any]): Unit // the default behavior is to stop all children
+      def postRestart(reason: Throwable): Unit                      // the default behavior is to call preStart()
+      def postStop(): Unit
+    }
+
+#### Lifecycle Monitoring
+
+To remove the ambiguity where a message doesn't get a response because the recipient stopped or because the network is down, Akka supports Lifecycle Monitoring, aka DeathWatch:
+- an Actor registers its interest using `context.watch(target)`
+- it will receive a `Terminated(target)` message when the target stops
+- it will not receive any direct messages from the target thereafter
+
+    trait ActorContext {
+      def watch(target: ActorRed): ActorRef
+      def unwatch(target: ActorRed): ActorRef
+    }
+
+The watcher receives a `Terminated(actor: ActorRef)` message:
+- It is a special message that our code cannot send
+- It comes with two implicit boolean flags: `existenceConfirmed` (was the watch sent when the target was still existing?) and `addressTerminated` (the watched actor was detected as unreachable)
+- Terminated messages are handled by the actor context, so cannot be forwarded
+
+#### The Error Kernel pattern
+
+Keep important data near the root, delegate the risk to the leaves
+- restarts are recursive
+- as a result, restarts are more frequent near the leaves
+- avoid restarting Actors with important states
+
+#### EventStream
+
+Because Actors can only send messages to a known address, the EventStream allows publication of messages to an unknown audience
+
+    trait EventStream {
+      def subscribe(subscriber: ActorRef, topic: Class[_]): Boolean
+      def unsubscribe(subscriber: ActorRef, topic: Class[_]): Boolean
+      def unsubscribe(subscriber: ActorRef): Unit
+      def publish(event: AnyRef): Unit
+    }
+
+
+    class MyActor extends Actor {
+      context.system.eventStream.subscribe(self, classOf[LogEvent])
+      def receive = {
+        case e: LogEvent => ...
+      }
+      override def postStop(): Unit = {
+        context.system.eventStream.unsubscribe(self)
+      }
+    }
+
+Unhanlded messages are passed to the Actor's `unhandled(message: Any)` method.
+
+#### Persistent Actor State
+
+The state of an Actor can be stored on disk to prevent data loss in case of a system failure.
+
+There are two ways for persisting state:
+- in-place updates mimics what is stored on the disk. This solution allows a fast recovery and limits the space used on the disk.
+- persist changes in append-only fashion. This solution allows fast updates on the disk. Because changes are immutable they can be freely be replicated. Finally it allows to analyze the history of a state.
+  - Command-Sourcing: persists the messages before processing them, persist acknowledgement when processed. Recovery works by sending the messages to the actor. A persistent Channel discards the messages already sent to the other actors
+  - Event-Sourcing: Generate change requests (events) instead of modifying the local state. The events are sent to the log that stores them. The actor can either update its state when sending the event to the log or wait for the log to contact it back (in which case it can buffer any message while waiting for the log).
+  - In both cases, immutable snapshots can be made at certain points of time. Recovery only applies recent changes to the latest snapshot.
+
+Each strategy have their upsides and downsides in terms of performance to change the state, recover the state, etc.
+
+The `stash` trait allows to buffer, e.g.
+
+    class MyActor extends Actor with Stash {
+      var state: State = ...
+      def receive = {
+        case NewState(text) if !state.disabled =>
+          ... // sends the event to the log
+          context.become(waiting, discardOld = false)
+      }
+      def waiting(): Receive = {
+        case e: Event =>
+          state = state.updated(e)  // updates the state
+          context.unbecome();       // reverts to the previous behavior
+          unstashAll()              // processes all the stashed messages
+        case _ => stash()           // stashes any message while waiting
+      }
+    }
