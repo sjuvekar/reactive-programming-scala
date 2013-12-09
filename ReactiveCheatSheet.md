@@ -484,16 +484,16 @@ Schedulers allow to run a block of code in a separate thread. The Subscription r
 
 Actors represent objects and their interactions, resembling human organizations. They are useful to deal with the complexity of writing multi-threaded applications (with their synchronizations, deadlocks, etc.)
 
-An actor has the following properties:
-- It is an object with an identity
-- It has a behavior
-- It only interacts using asynchronous message passing
-
     type Receive = PartialFunction[Any, Unit]
 
     trait Actor {
       def receive: Receive
     }
+
+An actor has the following properties:
+- It is an object with an identity
+- It has a behavior
+- It only interacts using asynchronous message
 
 Note: to use Actors in Eclipse you need to run a Run Configuration whose main class is `akka.Main` and whose Program argument is the full Main class name
 
@@ -546,10 +546,7 @@ The following example is changing the Actor's behavior any time the amount is ch
 
 #### Children and hierarchy
 
-Each Actor can create children actors, creating a hierarchy. Each actor maintains a list of the actors it created:
-- the child is added to the list when context.actorOf returns
-- the child is removed when Terminated is received
-- an actor name is available IF there is no such child. Actors are identified by their names, so they must be unique.
+Each Actor can create children actors, creating a hierarchy.
 
     class Main extends Actor {
       val counter = context.actorOf(Props[Counter], "counter")  // creates a Counter actor named "counter"
@@ -566,6 +563,11 @@ Each Actor can create children actors, creating a hierarchy. Each actor maintain
         }
       }
     }
+
+Each actor maintains a list of the actors it created:
+- the child is added to the list when context.actorOf returns
+- the child is removed when Terminated is received
+- an actor name is available IF there is no such child. Actors are identified by their names, so they must be unique.
 
 #### Message Processing Semantics
 
@@ -678,7 +680,7 @@ What happens when an error happens with an actor? Where shall failures go? With 
 
 Resilience demands containment (i.e. the failure is isolated so that it cannot spread to other components) and delegation of failure (i.e. it is handled by someone else and not the failed component)
 
-In the Supervisor model, the Supervisor needs to create its subordinates and will handle the exceptions encountered by its children. If a child fails, the supervisor may decide to stop it (`stop` message) or to restart it (`restart` message) to get it back to a known good state and initial behavior (in Akka, the ActorRef stays valid after a restart).
+In the Supervisor model, the Supervisor needs to create its subordinates and will handle the exceptions encountered by its children. If a child fails, the supervisor may decide to stop it (`stop` message) or to restart it to get it back to a known good state and initial behavior (in Akka, the ActorRef stays valid after a restart).
 
 An actor can decide a strategy by overriding `supervisorStrategy`, e.g.
 
@@ -690,10 +692,12 @@ An actor can decide a strategy by overriding `supervisorStrategy`, e.g.
 
 #### Lifecycle of an Actor
 
-- An Actor will have its context create a child Actor, who receives a preStart message.
-- In case of a failure, the supervisor gets consulted. The supervisor can stop the child or restart it (a restart is not externally visible). In case of a restart, the child Actor receives a preRestart message. A new instance of the actor is created, after which it receives a postRestart message. No message gets processed between the failure and the restart.
+- An Actor will have its context create a child Actor, and gets `preStart()` called.
+- In case of a failure, the supervisor gets consulted. The supervisor can stop the child or restart it (a restart is not externally visible). In case of a restart, the child Actor's `preRestart()` gets called. A new instance of the actor is created, after which its `postRestart()` method gets called. No message gets processed between the failure and the restart.
 - An actor can be restarted several times.
-- An actor can finally be stopped. It sends Stop to the context and will receive a postStop message.
+- An actor can finally be stopped. It sends Stop to the context and its `postStop()` method will be called.
+
+An Actor has the following methods that can be overridden:
 
     trait Actor {
       def preStart(): Unit
@@ -708,11 +712,6 @@ To remove the ambiguity where a message doesn't get a response because the recip
 - an Actor registers its interest using `context.watch(target)`
 - it will receive a `Terminated(target)` message when the target stops
 - it will not receive any direct messages from the target thereafter
-
-    trait ActorContext {
-      def watch(target: ActorRed): ActorRef
-      def unwatch(target: ActorRed): ActorRef
-    }
 
 The watcher receives a `Terminated(actor: ActorRef)` message:
 - It is a special message that our code cannot send
