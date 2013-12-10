@@ -44,7 +44,7 @@ A concise way of constructing partial functions is shown in the following exampl
 
 ## For-Comprehension and Pattern Matching
 
-A general For-Comprehension is described in Scala Cheat Sheet here: https://github.com/lrytz/progfun-wiki/blob/gh-pages/CheatSheet.md One can also use Patterns inside for-expression. The simplest form of for-expression pattern looks like
+A general For-Comprehension is described in Scala Cheat Sheet here: [https://github.com/lrytz/progfun-wiki/blob/gh-pages/CheatSheet.md](https://github.com/lrytz/progfun-wiki/blob/gh-pages/CheatSheet.md). One can also use Patterns inside for-expression. The simplest form of for-expression pattern looks like
 
     for { pat <- expr} yield e
 
