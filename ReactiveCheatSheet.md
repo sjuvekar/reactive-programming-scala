@@ -674,6 +674,21 @@ You can use dependency injection when the system relies from external sources, l
 
 You should start first the "leaves" actors and work your way to the parent actors.
 
+#### Logging Actor Systems 
+
+You can mix in your actor with `ActorLogging`, and use various log methods such as `log.debug` or `log.info`.
+  
+To see all the messages the actor is receiving, you can also define `receive` method as a `LoogingReceive`. 
+
+    def receive: Receive = LoggingReceive {
+      case Replicate =>
+      case Snapshot =>  
+    }
+      
+To see the log messages turn on akka debug level by adding the following in your run configuration. 
+
+    -Dakka.loglevel=DEBUG -Dakka.actor.debug.receive=on
+
 #### Failure handling with Actors
 
 What happens when an error happens with an actor? Where shall failures go? With the Actor models, Actors work together in teams (systems) and individual failures are handled by the team leader.
