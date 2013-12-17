@@ -794,3 +794,143 @@ The `stash` trait allows to buffer, e.g.
         case _ => stash()           // stashes any message while waiting
       }
     }
+
+## Clusters
+
+Actors are designed to be distributed. Which means they could be run on different cores, CPUs or even machines.
+
+When actors are distributed across a network, several problems can arise. To begin with, data sharing can only be by value and not by reference. Other networking: low bandwidth, partial failure (some messages never make it)
+
+On a network, Actors have a path that allow to reach them. An `ActorPath` is the full name (e.g. akka.tcp://HelloWorld@198.2.12.10:6565/user/greeter or akka://HelloWorld/user/greeter), whether the actor exists or not, whereas `ActorRef` points to an actor which was started and contains a UID (e.g. akka://HelloWorld/user/greeter#234235234).
+
+You can use `context.actorSelection(path) ! Identify((path, sender))` to convert an ActorPath into an ActorRef. An `ActorIdentity((path: ActorPath, client: ActorRef), ref: Option(ActorRef)` message is then sent back with `ref` being the ActorRef if there is any.
+
+It is also possible to get using `context.actorSelection("...")` which can take a local ("child/grandchild", "../sibling"), full path ("/user/myactor") or wildcards ("/user/controllers/*")
+
+#### Creating clusters
+
+A cluster is a set of nodes where all nodes know about each other and work to collaborate on a common task. A node can join a cluster by either sending a join request to any node of the cluster. It is accepted if all the nodes agree and know about the new node.
+
+The akka-cluster module must be installed and properly configured (akka.actor.provider = akka.cluster.ClusterActorRefProvider). To start a cluster, a node must start a cluster and join it:
+
+    class MyActor extends Actor {
+      val cluster = Cluster(context.system)
+      cluster.subscribe(self, classOf[ClusterEvent.MemberUp])
+      cluster.join(cluster.selfAddress)
+
+      def receive = {
+        case ClusterEvent.MemberUp(member) =>
+          if (member.address != cluster.selfAddress) {
+            // someone joined
+          }
+      }
+    }
+
+    class MyOtherActor extends Actor {
+      val cluster = Cluster(context.system)
+      cluster.subscribe(self, classOf[ClusterEvent.MemberUp])
+      val main = cluster.selfAddress.copy(port = Some(2552)) // default port
+      cluster.join(cluster.selfAddress)
+    
+      def receive = {
+        case ClusterEvenr.MemberRemoved(m, _) => if (m.address == main) context.stop(self)
+      }
+    }
+
+It is possible to create a new actor on a remote node
+
+    val node: Address = ...
+    val props = Props[MyClass].withDeploy(Deploy(scope = RemoteScope(node)))
+    val controller = context.actorOf(props, "myclass")
+
+#### Eventual Consistency
+
+- Strong consistency: after an update completes, all reads will return the updated value
+- Weak consistency: after an update, conditions need to be met until reads return the updated value (inconsistency window)
+- Eventual Consistency (a form of weak consistency): once no more updates are made to an object there is a time after which all reads return the last written value.
+
+In a cluster, the data is propagated through messages. Which means that collaborating actors can be at most eventually consistent.
+
+#### Actor Composition
+
+Since an Actor is only defined by its accepted message types, its structure may change over time.
+
+Various patterns can be used with actors:
+
+- The Customer Pattern: typical request/reply, where the customer address is included in the original request
+- Interceptors: one-way proxy that does not need to keep state (e.g. a log)
+- The Ask Pattern: create a temporary one-off ask actor for receiving an email (you can use `import.pattern.ask` and the `?` send message method)
+- Result Aggregation: aggregate results from multiple actors
+- Risk Delegation: create a subordinate to perform a task that may fail
+- Facade: used for translation, validation, rate limitation, access control, etc.
+
+Here is a code sniplet using the ask and aggregation patterns:
+
+    def receive = {
+      case Message =>
+      val response = for {
+        result1 <- (actor1 ? Message1).mapTo[MyClass1]
+        result2 <- (actor2 ? Message2).mapTo[MyClass2]  // only called when result1 is received
+      } yield ...
+
+      response pipeTo sender
+    }
+
+#### Scalability
+
+Asynchronous messages passing enables vertical scalability (running the computation in parallel in the same node)
+Location transparency enables horizontal scalability (running the computation on a cluster of multiple nodes)
+
+Low performance means the system is slow for a single client (high latency)
+Low scalability means the system is fast when used by a single client (low latency) but slow when used by many clients (low bandwidth)
+
+With actors, scalability can be achieved by running several stateless replicas concurrently. The incoming messages are dispatched through routing. Routing actor(s) can either be stateful (e.g. round robin, adaptive routing) or stateless (e.g. random, consistent hashing)
+
+- In Adaptive Routing (stateful), routees tell the router about their queue sizes on a regular basis.
+- In Consistent Hashing (stateless), the router is splitting incoming messages based on some criterion
+
+Stateful actors can be recovered based on a persisted state, but this means that 1) only one instance must be active at all time and 2) the routing is always to the active instance, buffering messages during recovery.
+
+#### Responsiveness
+
+Responsiveness is the ability to respond within a given time limit. If the goal of resilience is to be available, responsiveness implies resilience to overload scenarios.
+
+Several patterns can be implemented to achieve responsiveness:
+
+1) Exploit parallelism, e.g.
+
+    def receive = {
+      case Message =>
+        val result1 = (actor1 ? Message1).mapTo[MyClass1]
+        val result2 = (actor2 ? Message2).mapTo[MyClass2]  // both calls are run in parallel
+
+        val response = for (r1 <- result1, r2 <- result2) yield { ... }
+        response pipeTo sender
+    }
+
+2) Load vs. Responsiveness: When incoming request rate rises, latency typically rises. Hence the need to avoid dependency of processing cost on load and add parallelism elastically, resizing routers.
+
+However, any system has its limits in which case processing gets backlogged.
+
+3) The Circuit Breaker pattern (use akka `CircuitBreaker`) filters the number of requests that can come in when the sytem is under too much load, so that one subsystem being swamped does not affect the other subsystems.
+
+4) With the Bulkheading patterns, one separates computing intensive parts from client-facing parts (e.g. on different nodes), the latter being able to run even if the backend fails.
+
+    Props[MyActor].withDispatcher("compute-jobs")  // tells to run the actor on a different thread
+
+    // If not, actors run on the default dispatcher
+    akka.actor.default-dispatcher {
+      executor = "fork-join-executor"
+      fork-join-executor {
+        parallelism-min = 8
+        parallelism-max = 64
+        parallelism-factor = 3.0
+      }
+    }
+
+    compute-jobs.fork-join-executor {
+      parallelism-min = 4
+      parallelism-max = 4
+    }
+
+5) Use the Active-Active Configuration. Detecting failures takes time (usually a timeout). When this is not acceptable, instant failover is possible in active-active configurations where 3 nodes process the same request in parallel and send their reponses to the requester. Once the requester receives 2 matching results it considers it has its answer, and will proactively restart a node if it fails to respond within a certain time.
