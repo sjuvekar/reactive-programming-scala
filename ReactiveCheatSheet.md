@@ -318,7 +318,7 @@ Async and await allow to run some part of the code aynchronously. The following 
 
 #### Promises
 
-A Promise is a nomad which can be used to successfully complete a future with a value (thus completing the promise) or failed with an exception
+A Promise is a monad which can complete a future, with a value if successful (thus completing the promise) or with an exception on failure (failing the promise).
 
     trait Promise[T]
       def future: Future[T]
@@ -328,11 +328,12 @@ A Promise is a nomad which can be used to successfully complete a future with a 
 
 It is used as follows:
 
-    val p = Promise[T]  // defines a promise
-    p.future            // returns a future that will complete when p.complete() is called
-    p.complete(Try[T])  // completes the future
-    p success T         // successfully completes the promise
-
+    val p = Promise[T]          // defines a promise
+    p.future                    // returns a future that will complete when p.complete() is called
+    p.complete(Try[T])          // completes the future
+    p success T                 // successfully completes the promise
+    p failure (new <Exception>) // failed with an exception
+    
 ## Observables
 Observables are asynchronous streams of data. Contrary to Futures, they can return multiple values.
 
