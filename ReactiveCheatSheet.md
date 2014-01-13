@@ -834,7 +834,7 @@ The akka-cluster module must be installed and properly configured (akka.actor.pr
       cluster.join(cluster.selfAddress)
     
       def receive = {
-        case ClusterEvenr.MemberRemoved(m, _) => if (m.address == main) context.stop(self)
+        case ClusterEvent.MemberRemoved(m, _) => if (m.address == main) context.stop(self)
       }
     }
 
