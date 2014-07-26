@@ -198,7 +198,7 @@ The parametric Try class as defined in Scala.util looks like this:
 
 `Try[T]` can either be `Success[T]` or `Failure(t: Throwable)`
 
-    import Scala.util.{Try, Success, Failure}
+    import scala.util.{Try, Success, Failure}
 
     def answerToLife(nb: Int) : Try[Int] = {
       if (nb == 42) Success(nb)
