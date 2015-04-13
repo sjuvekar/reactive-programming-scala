@@ -592,7 +592,7 @@ It is good practice to define an Actor's messages in its companion object. Here,
     class BankAccount extends Actor {
       import BankAccount._
 
-      var valance = BigInt(0)
+      var balance = BigInt(0)
 
       def receive = {
         case Deposit(amount) => balance += amount
