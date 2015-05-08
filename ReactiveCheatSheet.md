@@ -413,7 +413,7 @@ It is possible to create several observables. The following functions suppose th
       Observable[T](observer => {
         subscribe(
           (t: T) => { if(p(t)) observer.onNext(t) },
-          (e: Thowable) => { observer.onError(e) },
+          (e: Throwable) => { observer.onError(e) },
           () => { observer.onCompleted() }
         )
       })
@@ -424,7 +424,7 @@ It is possible to create several observables. The following functions suppose th
       Observable[S](observer => {
         subscribe(
           (t: T) => { observer.onNext(f(t)) },
-          (e: Thowable) => { observer.onError(e) },
+          (e: Throwable) => { observer.onError(e) },
           () => { observer.onCompleted() }
         )
       }
