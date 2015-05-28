@@ -690,6 +690,17 @@ To see the log messages turn on akka debug level by adding the following in your
 
     -Dakka.loglevel=DEBUG -Dakka.actor.debug.receive=on
 
+Alternatively, create a file named `src/test/resources/application.conf` with the following content:
+
+    akka {
+      loglevel = "DEBUG"
+      actor {
+        debug {
+          receive = on
+        }
+      }
+    }
+
 #### Failure handling with Actors
 
 What happens when an error happens with an actor? Where shall failures go? With the Actor models, Actors work together in teams (systems) and individual failures are handled by the team leader.
