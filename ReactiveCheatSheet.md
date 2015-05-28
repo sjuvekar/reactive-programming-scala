@@ -47,7 +47,7 @@ A concise way of constructing partial functions is shown in the following exampl
 A general For-Comprehension is described in Scala Cheat Sheet here: [https://github.com/lrytz/progfun-wiki/blob/gh-pages/CheatSheet.md](https://github.com/lrytz/progfun-wiki/blob/gh-pages/CheatSheet.md). One can also use Patterns inside for-expression. The simplest form of for-expression pattern looks like
 
     for { pat <- expr} yield e
-
+
 where `pat` is a pattern containing a single variable `x`. We translate the `pat <- expr` part of the expression to
 
     x <- expr withFilter {
@@ -90,7 +90,7 @@ With these definition, and a basic definition of `integer` generator, we can map
 
 ## Monads
 
-A monad is a parametric type M[T] with two operations: `flatMap` and `unit`. 
+A monad is a parametric type `M[T]` with two operations: `flatMap` and `unit`. 
 
     trait M[T] {
       def flatMap[U](f: T => M[U]) : M[U]
