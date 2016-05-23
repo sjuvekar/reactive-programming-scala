@@ -127,7 +127,7 @@ Many standard Scala Objects like `List, Set, Option, Gen` are monads with identi
 
 Monads help simplify for-expressions. 
 
-**Associativily** helps us "inline" nested for-expressions and write something like
+**Associativity** helps us "inline" nested for-expressions and write something like
 
 ```scala
 for { x <- e1; y <- e2(x) ... }
