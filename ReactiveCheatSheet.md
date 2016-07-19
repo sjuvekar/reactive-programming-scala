@@ -297,6 +297,7 @@ object Future {
 This object has an apply method that starts an asynchronous computation in current context, returns a `Future` object. We can then subsribe to this `Future` object to be notified when the computation finishes.
 
 ```scala
+import scala.util.{Try, Success, Failure}
 import scala.concurrent._
 import ExecutionContext.Implicits.global
 
@@ -319,7 +320,7 @@ answerToLife onFailure {
   case t => println("An error has occured: " + t.getMessage)
 }
 
-answerToLife.now    // only works if the future is completed
+answerToLife    // only works if the future is completed
 ```
 
 
