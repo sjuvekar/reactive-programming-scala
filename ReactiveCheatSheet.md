@@ -294,7 +294,7 @@ object Future {
 }
 ```
 
-This object has an apply method that starts an asynchronous computation in current context, returns a `Future` object. We can then subsribe to this `Future` object to be notified when the computation finishes.
+This object has an apply method that starts an asynchronous computation in current context, returns a `Future` object. We can then subscribe to this `Future` object to be notified when the computation finishes.
 
 ```scala
 import scala.util.{Try, Success, Failure}
