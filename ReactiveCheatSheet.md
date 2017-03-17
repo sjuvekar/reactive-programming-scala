@@ -774,7 +774,7 @@ You should start first the "leaves" actors and work your way to the parent actor
 
 You can mix in your actor with `ActorLogging`, and use various log methods such as `log.debug` or `log.info`.
   
-To see all the messages the actor is receiving, you can also define `receive` method as a `LoogingReceive`. 
+To see all the messages the actor is receiving, you can also define `receive` method as a `LoggingReceive`. 
 
 ```scala
 def receive: Receive = LoggingReceive {
