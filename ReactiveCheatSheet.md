@@ -378,7 +378,7 @@ def retry(noTimes: Int)(block: => Future[T]): Future[T] = async {
 A Promise is a monad which can complete a future, with a value if successful (thus completing the promise) or with an exception on failure (failing the promise).
 
 ```scala
-trait Promise[T]
+trait Promise[T] {
   def future: Future[T]
   def complete(result: Try[T]): Unit  // to call when the promise is completed
   def tryComplete(result: Try[T]): Boolean
