@@ -378,7 +378,7 @@ def retry(noTimes: Int)(block: => Future[T]): Future[T] = async {
 A Promise is a monad which can complete a future, with a value if successful (thus completing the promise) or with an exception on failure (failing the promise).
 
 ```scala
-trait Promise[T]
+trait Promise[T] {
   def future: Future[T]
   def complete(result: Try[T]): Unit  // to call when the promise is completed
   def tryComplete(result: Try[T]): Boolean
@@ -657,7 +657,7 @@ Each actor maintains a list of the actors it created:
 
 #### Message Processing Semantics
 
-There is no direct access to an actor behavior. Only messages can be sent to known adresses (`ActorRef`). Those adresses can be either be oneself (`self`), the address returned when creating a new actor, or when received by a message (e.g. `sender`)
+There is no direct access to an actor behavior. Only messages can be sent to known addresses (`ActorRef`). Those addresses can be either be oneself (`self`), the address returned when creating a new actor, or when received by a message (e.g. `sender`)
 
 Actors are completely insulated from each other except for messages they send each other. Their computation can be run concurrently. However, a specific actor is single-threaded - its messages are received sequentially. Processing a message is the atomic unit of execution and cannot be interrupted.
 
