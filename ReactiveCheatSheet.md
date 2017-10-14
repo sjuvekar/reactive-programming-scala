@@ -203,7 +203,7 @@ The treatment of for loops is similar to the <b>For-Comprehensions</b> commonly 
 for(v1 <- e1; v2 <- e2; ...; v_n <- e_n) command
 ```
 
-Note a few subtle differences from a For-expreesion. There is no `yield` expression, `command` can contain mutable states and `e1, e2, ..., e_n` are expressions over arbitrary Scala collections. This for loop is translated by Scala using a **foreach** combinator defined over any arbitrary collection. The signature for **foreach** over collection **T** looks like this
+Note a few subtle differences from a For-expression. There is no `yield` expression, `command` can contain mutable states and `e1, e2, ..., e_n` are expressions over arbitrary Scala collections. This for loop is translated by Scala using a **foreach** combinator defined over any arbitrary collection. The signature for **foreach** over collection **T** looks like this
 
 ```scala
 def foreach(f: T => Unit) : Unit
