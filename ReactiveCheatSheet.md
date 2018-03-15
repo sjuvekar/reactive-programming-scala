@@ -98,7 +98,7 @@ With these definition, and a basic definition of `integer` generator, we can map
 ```scala
 val booleans = for {x <- integers} yield x > 0
 val pairs = for {x <- integers; y<- integers} yield (x, y)
-def interval(lo: Int, hi: Int) : Generator[Int] = for { x <- integers } yield lo + x % (hi - lo)
+def interval(lo: Int, hi: Int) : Generator[Int] = for { x <- integers } yield lo + math.abs(x) % (hi - lo)
 ```
 
 
