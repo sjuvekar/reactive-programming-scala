@@ -262,7 +262,7 @@ All of these method calls are synchronous, blocking and the sequence computes to
 ```scala
 val o1 = SomeTrait()
 val ans = for {
-    o2 <- o1.f1();
+    o2 <- o1.f1()
     o3 <- o2.f2()
 } yield o3
 ```
